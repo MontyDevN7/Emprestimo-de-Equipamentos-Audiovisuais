@@ -1,122 +1,162 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+import EquipamentoCard from "./EquipamentoCard";
+import ListaEquipamentos from "./ListaEquipamentos";
+import FormularioEmprestimo from "./FormularioEmprestimo";
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+export interface Equipamento {
+  patrimonio: string;
+  nome: string;
+  categoria: string;
+  status: "Disponível" | "Emprestado";
+  solicitante?: string;
+  devolucaoPrevista?: string;
 }
 
-export default App
+const equipamentosIniciais: Equipamento[] = [
+  {
+    patrimonio: "EQ001",
+    nome: "Projetor Epson",
+    categoria: "Projetor",
+    status: "Disponível",
+  },
+  {
+    patrimonio: "EQ002",
+    nome: "Caixa de Som JBL",
+    categoria: "Áudio",
+    status: "Emprestado",
+    solicitante: "Professor Carlos",
+    devolucaoPrevista: "2026-09-15",
+  },
+  {
+    patrimonio: "EQ003",
+    nome: "Cabo HDMI 5m",
+    categoria: "Cabo",
+    status: "Disponível",
+  },
+  {
+    patrimonio: "EQ004",
+    nome: "Projetor BenQ",
+    categoria: "Projetor",
+    status: "Disponível",
+  },
+  {
+    patrimonio: "EQ005",
+    nome: "Microfone sem fio",
+    categoria: "Áudio",
+    status: "Emprestado",
+    solicitante: "Professora Ana",
+    devolucaoPrevista: "2026-09-20",
+  },
+];
+
+function App() {
+  const [equipamentos, setEquipamentos] =
+    useState<Equipamento[]>(equipamentosIniciais);
+
+  const [mensagem, setMensagem] = useState("");
+
+  function realizarEmprestimo(
+    patrimonios: string[],
+    solicitante: string,
+    devolucaoPrevista: string
+  ) {
+    if (patrimonios.length === 0) {
+      setMensagem("Selecione pelo menos um equipamento.");
+      return;
+    }
+
+    if (patrimonios.length > 2) {
+      setMensagem("Limite de 2 equipamentos por empréstimo.");
+      return;
+    }
+
+    const selecionados = equipamentos.filter((equipamento) =>
+      patrimonios.includes(equipamento.patrimonio)
+    );
+
+    const algumEmprestado = selecionados.some(
+      (equipamento) => equipamento.status === "Emprestado"
+    );
+
+    if (algumEmprestado) {
+      setMensagem(
+        "Empréstimo não realizado: um dos equipamentos já está emprestado."
+      );
+      return;
+    }
+
+    setEquipamentos((listaAtual) =>
+      listaAtual.map((equipamento) =>
+        patrimonios.includes(equipamento.patrimonio)
+          ? {
+              ...equipamento,
+              status: "Emprestado",
+              solicitante,
+              devolucaoPrevista,
+            }
+          : equipamento
+      )
+    );
+
+    setMensagem(`Empréstimo registrado para ${solicitante}.`);
+  }
+
+  return (
+    <main className="app">
+      <header className="cabecalho">
+        <p className="codigo">PP-0UPUPK1-0GUTYGW</p>
+
+        <h1>Empréstimo de Equipamentos Audiovisuais</h1>
+
+        <p>
+          Controle de projetores, caixas de som e cabos para professores e
+          turmas.
+        </p>
+      </header>
+
+      <section className="resumo">
+        <div>
+          <strong>{equipamentos.length}</strong>
+          <span>Equipamentos</span>
+        </div>
+
+        <div>
+          <strong>
+            {
+              equipamentos.filter(
+                (equipamento) => equipamento.status === "Disponível"
+              ).length
+            }
+          </strong>
+          <span>Disponíveis</span>
+        </div>
+
+        <div>
+          <strong>
+            {
+              equipamentos.filter(
+                (equipamento) => equipamento.status === "Emprestado"
+              ).length
+            }
+          </strong>
+          <span>Emprestados</span>
+        </div>
+      </section>
+
+      <section className="conteudo">
+        <FormularioEmprestimo
+          equipamentos={equipamentos}
+          onEmprestimo={realizarEmprestimo}
+        />
+
+        <ListaEquipamentos equipamentos={equipamentos} />
+      </section>
+
+      {mensagem && <p className="mensagem">{mensagem}</p>}
+    </main>
+  );
+}
+
+export default App;
